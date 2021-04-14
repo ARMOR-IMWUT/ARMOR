@@ -88,3 +88,7 @@ class CNNFashion_Mnist(nn.Module):
         out = self.fc1(out)
 
         return F.log_softmax(out, dim=1)
+
+
+class CNNCifar:
+    pass

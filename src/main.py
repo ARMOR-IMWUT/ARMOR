@@ -1,6 +1,43 @@
+import copy
+
+import numpy as np
+import stats as stats
+import torch
 import tqdm as tqdm
+from torch.utils.tensorboard import SummaryWriter
+
+from ARMOR.src.aggregation import FLaggregate, krum, normBound, rfa, trimmed_mean, average_weights
+from ARMOR.src.dataset_utils import get_dataset
+from ARMOR.src.models import CNNMnist, CNNFashion_Mnist, CNNCifar
+from ARMOR.src.parser import Arguments
+from ARMOR.src.train import LocalUpdate
+from ARMOR.src.utils import weights_init, attack_test_visual_pattern, test_inference
 
 if __name__ == '__main__':
+
+    args = Arguments()
+    torch.manual_seed(args.seed)
+    device = 'cuda' if args.gpu else 'cpu'
+    logger = SummaryWriter('../logs')
+    train_dataset, test_dataset, user_groups = get_dataset(args)
+
+    if args.model == 'cnn':
+        # Convolutional neural network
+        if args.dataset == 'mnist':
+            global_model = CNNMnist(args=args)
+            # global_model.apply(weight_init)
+            global_model.load_state_dict(torch.load('mnist_model.pt'))
+
+        elif args.dataset == 'fmnist':
+            global_model = CNNFashion_Mnist(args)
+            global_model.load_state_dict(torch.load("fashion_model.pt"))
+        elif args.dataset == 'cifar':
+            global_model = CNNCifar(args=args)
+
+    global_model.to(device)
+    global_model.train()
+    global_weights = global_model.state_dict()
+
     """ 
     Training and testing the attack
     """
@@ -9,7 +46,7 @@ if __name__ == '__main__':
     train_loss, train_accuracy = [], []
     val_acc_list, net_list = [], []
     cv_loss, cv_acc = [], []
-    print_every = 2
+    print_every = 1
     val_loss_pre, counter = 0, 0
     attack_accuracy = []
     test_accuracy = []
@@ -30,8 +67,8 @@ if __name__ == '__main__':
         state_dict = global_model.state_dict()
         torch.save(state_dict, path)
         global_model.train()
-        if (epoch == 0):
-            if (args.dataset == "mnist"):
+        if epoch == 0:
+            if args.dataset == "mnist":
                 old_model_2 = CNNMnist(args)
             else:
                 old_model_2 = CNNFashion_Mnist(args)
@@ -43,43 +80,40 @@ if __name__ == '__main__':
             old_model_2 = copy.deepcopy(old_model)
 
         old_model = copy.deepcopy(global_model)
-        m = max(int(args.frac * (args.num_users)), 1)
+        m = max(int(args.frac * args.num_users), 1)
         # I put num_users - 1 to use an extra subset for training the GAN on the server side
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
 
         for idx in idxs_users:
-            if (args.diffPrivacy):
+            if args.diffPrivacy:
                 local_model = LocalUpdateDiffPrivacy(args=args, dataset=train_dataset, idxs=user_groups[idx],
                                                      logger=logger)
-                print("here 1")
+
             else:
                 local_model = LocalUpdate(args=args, dataset=train_dataset, idxs=user_groups[idx], logger=logger)
-                print("here2 ")
 
-            print('------------------------------------------')
             print('------------------------------------------')
             print(f'--------------User: {idx}-----------------')
             print('------------------------------------------')
 
-            # @Rania : I updated this to manage multiple attackers
-            if (args.attack == 1):
+            if args.attack == 1:
                 w, loss = local_model.update_weights(
                     model=copy.deepcopy(global_model), global_round=epoch,
                     attack=((idx in args.attackers_list) and (epoch > args.start_round)))
                 attackBool = ((idx in args.attackers_list) and (epoch > args.start_round))
                 # stats_line += str(attackBool) + ","
             else:
-                if (args.attack == 2):
+                if args.attack == 2:
                     w, loss = local_model.update_weights(
                         model=copy.deepcopy(global_model), global_round=epoch, attack=(
-                                    (idx in args.attackers_list) and (epoch % args.attack_step == 0) and (
-                                        epoch > args.start_round)))
+                                (idx in args.attackers_list) and (epoch % args.attack_step == 0) and (
+                                epoch > args.start_round)))
                     attackBool = (idx in args.attackers_list) and (epoch % args.attack_step == 0) and (
-                                epoch > args.start_round)
+                            epoch > args.start_round)
                     print("attack = ", attackBool)
                     # stats_line += str(attackBool) + ","
                 else:
-                    if (args.attack == 3):
+                    if args.attack == 3:
                         w, loss = local_model.update_weights(
                             model=copy.deepcopy(global_model), global_round=epoch,
                             attack=((idx in args.attackers_list) and (epoch == args.single_shot_round)))
@@ -87,10 +121,10 @@ if __name__ == '__main__':
                         print("attack = ", attackBool)
                         # stats_line += str(attackBool) + ","
                     else:
-                        if (args.attack == 4):
+                        if args.attack == 4:
                             w, loss = local_model.update_weights_replacement(copy.deepcopy(global_model), epoch, (
-                                        (idx in args.attackers_list) and (epoch % args.attack_step == 0) and (
-                                            epoch > args.start_round)))
+                                    (idx in args.attackers_list) and (epoch % args.attack_step == 0) and (
+                                    epoch > args.start_round)))
                         else:
                             w, loss = local_model.update_weights(
                                 model=copy.deepcopy(global_model), global_round=epoch, attack=False)
@@ -100,62 +134,31 @@ if __name__ == '__main__':
         # Update global weights
         # Use Protection mechanism
 
-        if (args.detector == 0):
+        if args.detector == 0:
             global_weights = FLaggregate(local_weights, args)
         else:
-            if (args.detector == 1):
+            if args.detector == 1:
                 global_weights = krum(local_weights, args)
             else:
-                if (args.detector == 2):
+                if args.detector == 2:
                     global_weights = normBound(local_weights, args)
                 else:
-                    global_weights = FLaggregate(local_weights, args)
+                    if args.detector == 5:
+                        global_weights = rfa(local_weights)
+                    else:
+                        if args.detector == 6:
+                            global_weights = trimmed_mean(local_weights)
 
         global_model.load_state_dict(global_weights)
         path = "./model_current_.pt"
         state_dict = global_model.state_dict()
         torch.save(state_dict, path)
 
-        if (args.detector == 3):
+        if args.detector == 3:
             poisoning_flag, runtime, global_model, diff_loss, loss_inspected, loss_clean, diff_accuracy, accuracy_clean, accuracy_inspected, output_average_clean, output_average_inspected = GAN_ARMOR(
                 args)
-            stats_line += str(runtime) + ","
-            stats_line += str(poisoning_flag) + ","
-            stats_line += ','.join(map(str, diff_loss)) + ","
-            stats_line += ','.join(map(str, loss_inspected)) + ","
-            stats_line += ','.join(map(str, loss_clean)) + ","
-            stats_line += ','.join(map(str, diff_accuracy)) + ","
-            stats_line += ','.join(map(str, accuracy_inspected)) + ","
-            stats_line += ','.join(map(str, accuracy_clean)) + ","
-            # stats_line += ','.join(map(str, output_average_inspected)) +","
-            # stats_line += ','.join(map(str, output_average_clean)) +","
-            # runtime, global_model__ = GAN_ARMOR(args)
         else:
-            if (args.detector == 4):
-                poisoning_flag, runtime, global_model, diff_loss, loss_inspected, loss_clean, diff_accuracy, accuracy_clean, accuracy_inspected = OPT_ARMOR(
-                    args, epoch)
-                stats_line += str(runtime) + ","
-                stats_line += str(poisoning_flag) + ","
-                stats_line += ','.join(map(str, diff_loss)) + ","
-                stats_line += ','.join(map(str, loss_inspected)) + ","
-                stats_line += ','.join(map(str, loss_clean)) + ","
-                stats_line += ','.join(map(str, diff_accuracy)) + ","
-                stats_line += ','.join(map(str, accuracy_inspected)) + ","
-                stats_line += ','.join(map(str, accuracy_clean)) + ","
-            else:
-                poisoning_flag, runtime, global_model, loss_inspected, loss_clean, loss_clean2, average_output_inspected, average_output_clean, average_output_clean2, ratio1, ratio2 = gan_detector.poisoningDetection(
-                    epoch)
-                stats_line += str(runtime) + ","
-                stats_line += str(poisoning_flag) + ","
-                stats_line += ','.join(map(str, ratio1)) + ","
-                stats_line += ','.join(map(str, ratio2)) + ","
-                # stats_line += ','.join(map(str, loss_clean2)) +","
-                """for label in range(0, len(average_output_inspected)):
-                    stats_line += ','.join(map(str, average_output_inspected[label].tolist())) +","
-                for label in range(0, len(average_output_clean)):
-                    stats_line += ','.join(map(str, average_output_clean[label].tolist())) +","
-                for label in range(0, len(average_output_clean2)):
-                    stats_line += ','.join(map(str, average_output_clean2[label].tolist())) +","""
+            global_weights = average_weights(local_weights)
 
         loss_avg = sum(local_losses) / len(local_losses)
         train_loss.append(loss_avg)
@@ -175,7 +178,7 @@ if __name__ == '__main__':
         stats_line += str(attack_accuracy[-1]) + ","
         print('------------attack accuracy --------------')
         print("|---- Test Attack Accuracy: {:.2f}%".format(attack_accuracy[-1]))
-        if (attack_accuracy[-1] > 90):
+        if attack_accuracy[-1] > 90:
             print("**********************************save attack model ***********************************")
             path = "./model_attack_.pt"
             state_dict = global_model.state_dict()
@@ -196,6 +199,3 @@ if __name__ == '__main__':
     print(f' \n Results after {args.epochs} global rounds of training:')
     print("|---- Avg Train Accuracy: {:.2f}%".format(100 * train_accuracy[-1]))
     print("|---- Test Accuracy: {:.2f}%".format(100 * test_accuracy[-1]))
-
-    # test_attack_acc = attack_test_visual_pattern(test_dataset, global_model)
-    # print("|---- Test Attack Accuracy: {:.2f}%".format(test_attack_acc))
