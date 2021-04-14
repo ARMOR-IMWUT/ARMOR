@@ -1,6 +1,7 @@
 import numpy as np
+import torch
 from torch.distributions import transforms
-from torch.utils.data import datasets
+from torch.utils.data import datasets, Dataset
 
 
 def get_dataset(args):
@@ -286,3 +287,19 @@ def cifar_noniid(dataset, num_users):
             dict_users[i] = np.concatenate(
                 (dict_users[i], idxs[rand * num_imgs:(rand + 1) * num_imgs]), axis=0)
     return dict_users
+
+
+class DatasetSplit(Dataset):
+    """An abstract Dataset class wrapped around Pytorch Dataset class.
+    """
+
+    def __init__(self, dataset, idxs):
+        self.dataset = dataset
+        self.idxs = [int(i) for i in idxs]
+
+    def __len__(self):
+        return len(self.idxs)
+
+    def __getitem__(self, item):
+        image, label = self.dataset[self.idxs[item]]
+        return torch.tensor(image), torch.tensor(label)
