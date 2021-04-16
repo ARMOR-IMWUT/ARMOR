@@ -11,6 +11,7 @@ from ARMOR.src.dataset_utils import get_dataset
 from ARMOR.src.models import CNNMnist, CNNFashion_Mnist, CNNCifar
 from ARMOR.src.parser import Arguments
 from ARMOR.src.train import LocalUpdate
+from ARMOR.src.train_dp import LocalUpdateDifferentialPrivacy
 from ARMOR.src.utils import weights_init, attack_test_visual_pattern, test_inference
 
 if __name__ == '__main__':
@@ -86,7 +87,7 @@ if __name__ == '__main__':
 
         for idx in idxs_users:
             if args.diffPrivacy:
-                local_model = LocalUpdateDiffPrivacy(args=args, dataset=train_dataset, idxs=user_groups[idx],
+                local_model = LocalUpdateDifferentialPrivacy(args=args, dataset=train_dataset, idxs=user_groups[idx],
                                                      logger=logger)
 
             else:

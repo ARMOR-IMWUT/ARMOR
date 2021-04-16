@@ -1,7 +1,6 @@
 import numpy as np
 import torch
-from torch.distributions import transforms
-from torch.utils.data import datasets, Dataset
+from torchvision import datasets, transforms
 
 
 def get_dataset(args):
