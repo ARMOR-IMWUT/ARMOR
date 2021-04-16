@@ -5,11 +5,12 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from ARMOR.src.utils import model_replacement
+from ARMOR.src.dataset_utils import DatasetSplit
+from ARMOR.src.utils import model_replacement, attack_test_visual_pattern
 
 
 class LocalUpdate(object):
-    def __init__(self, args, dataset, idxs, logger):
+    def __init__(self, args, dataset, idxs, logger, test_dataset):
         self.args = args
 
         self.logger = logger
@@ -18,6 +19,7 @@ class LocalUpdate(object):
         self.device = 'cuda' if args.gpu else 'cpu'
         # Default criterion set to NLL loss function
         self.criterion = nn.NLLLoss().to(self.device)
+        self.test_dataset = test_dataset
 
     def train_val_test(self, dataset, idxs):
         """
@@ -96,7 +98,7 @@ class LocalUpdate(object):
             epoch_loss.append(sum(batch_loss) / len(batch_loss))
 
         if modelReplacement:
-            return model_replacement(model.state_dict(), x, args.num_users, args), sum(epoch_loss) / len(epoch_loss)
+            return model_replacement(model.state_dict(), x, self.args.num_users, self.args), sum(epoch_loss) / len(epoch_loss)
         else:
             return model.state_dict(), sum(epoch_loss) / len(epoch_loss)
 
@@ -144,9 +146,10 @@ class LocalUpdate(object):
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss) / len(batch_loss))
         if attack:
-            print('test attack after attacker', attack_test_visual_pattern(test_dataset, model))
+            print('test attack after attacker', attack_test_visual_pattern(self.test_dataset, model))
         if attack:
-            return model_replacement(model.state_dict(), x, args.num_users, args), sum(epoch_loss) / len(epoch_loss)
+            return model_replacement(model.state_dict(), x, self.args.num_users, self.args), sum(epoch_loss) / len(
+                epoch_loss)
         else:
             return model.state_dict(), sum(epoch_loss) / len(epoch_loss)
         # return model.state_dict(), sum(epoch_loss) / len(epoch_loss)
