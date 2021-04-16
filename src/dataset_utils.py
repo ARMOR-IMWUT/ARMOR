@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from torchvision import datasets, transforms
-
+from torch.utils.data import DataLoader, Dataset
 
 def get_dataset(args):
     """ Returns train and test datasets and a user group which is a dict where
