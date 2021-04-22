@@ -58,6 +58,21 @@ def attack_test_visual_pattern(test_loader, model, device='cuda'):
     return (total_0 / total) * 100
 
 
+def test_per_class_accuracy(test_loader, model, device='cuda'):
+    total = [0] * 10
+    total_0 = [0] * 10
+    testloader = DataLoader(test_loader, batch_size=100,
+                            shuffle=False)
+    for dataset_idx, (data, targets) in enumerate(testloader):
+        test_result = model(data.to(device))
+        for x in range(0, 100):
+            tmp = torch.argmax(test_result[x])
+            total[int(targets[x])] += 1
+            total_0[int(tmp)] += 1
+
+    return [i / j * 100 for i, j in zip(total_0, total)]
+
+
 def add_visual_pattern(input):
     pattern = ((1, 3), (1, 5), (3, 1), (5, 1), (5, 3), (3, 5), (5, 5), (1, 1), (3, 3), (5, 5))
     for x, y in pattern:

@@ -5,24 +5,31 @@ import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
+from tensorflow_privacy.privacy.analysis.compute_noise_from_budget_lib import compute_noise
 
 from ARMOR.src.dataset_utils import DatasetSplit
 from ARMOR.src.dp_utils import gaussian_noise
-from ARMOR.src.utils import model_replacement
+from ARMOR.src.utils import model_replacement, attack_test_visual_pattern
 
 
 class LocalUpdateDifferentialPrivacy(object):
-    def __init__(self, args, dataset, idxs, q, logger):
+    def __init__(self, args, dataset, idxs, q, logger, test_dataset, clip, T, eps, delta):
         self.args = args
         self.logger = logger
         self.dataset = dataset
+        self.clip = clip
         self.q = q
+        self.T = T
+        self.clip = clip
+        self.eps = eps
+        self.delta = delta
+        self.test_dataset = test_dataset
         self.trainloader, self.validloader, self.testloader = self.train_val_test(
             dataset, list(idxs))
         self.device = 'cuda' if args.gpu else 'cpu'
         # Default criterion set to NLL loss function
         self.criterion = nn.NLLLoss().to(self.device)
-
+        self.sigma = compute_noise(1, self.q, self.eps, self.T, self.delta, 1e-5)
     def train_val_test(self, dataset, idxs):
         """
         Returns train, validation and test dataloaders for a given dataset
@@ -114,7 +121,8 @@ class LocalUpdateDifferentialPrivacy(object):
                                               self.sigma, device=self.device)
         self.model.load_state_dict(copy.deepcopy(new_param))
         if modelReplacement:
-            return model_replacement(model.state_dict(), x, args.num_users, args), sum(epoch_loss) / len(epoch_loss)
+            return model_replacement(model.state_dict(), x, self.args.num_users, self.args), sum(epoch_loss) / len(
+                epoch_loss)
         else:
             return model.state_dict(), sum(epoch_loss) / len(epoch_loss)
 
@@ -162,9 +170,10 @@ class LocalUpdateDifferentialPrivacy(object):
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss) / len(batch_loss))
         if attack:
-            print('test attack after attacker', attack_test_visual_pattern(test_dataset, model))
+            print('test attack after attacker', attack_test_visual_pattern(self.test_dataset, model))
         if attack:
-            return model_replacement(model.state_dict(), x, args.num_users, args), sum(epoch_loss) / len(epoch_loss)
+            return model_replacement(model.state_dict(), x, self.args.num_users, self.args), sum(epoch_loss) / len(
+                epoch_loss)
         else:
             return model.state_dict(), sum(epoch_loss) / len(epoch_loss)
         # return model.state_dict(), sum(epoch_loss) / len(epoch_loss)
