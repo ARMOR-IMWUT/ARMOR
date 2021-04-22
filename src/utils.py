@@ -68,7 +68,8 @@ def test_per_class_accuracy(test_loader, model, device='cuda'):
         for x in range(0, 100):
             tmp = torch.argmax(test_result[x])
             total[int(targets[x])] += 1
-            total_0[int(tmp)] += 1
+            if int(targets[x]) == int(tmp):
+                total_0[int(tmp)] += 1
 
     return [i / j * 100 for i, j in zip(total_0, total)]
 
