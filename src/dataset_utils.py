@@ -65,16 +65,20 @@ def get_dataset(args):
         # sample training data amongst users
         if args.iid:
             # Sample IID user data from Mnist
+            print('hey this is iid')
             user_groups = mnist_iid(train_dataset, args.num_users)
         else:
             # Sample Non-IID user data from Mnist
             if args.unequal:
+                print('hey this is unequal')
                 # Chose uneuqal splits for every user
                 user_groups = mnist_noniid_unequal(train_dataset, args.num_users)
             elif args.dirichlet:
+                print('hey this is dirichlet')
                 user_groups = get_distribution_index(args.alpha, train_dataset, args.num_users)
             else:
                 # Chose euqal splits for every user
+                print('hey this is equal')
                 user_groups = mnist_noniid(train_dataset, args.num_users)
     elif args.dataset == 'imagenet':
         print('hey --')
