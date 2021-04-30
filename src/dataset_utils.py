@@ -1,7 +1,8 @@
 import numpy as np
 import torch
+from torch.utils.data import Dataset
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, Dataset
+
 
 def get_dataset(args):
     """ Returns train and test datasets and a user group which is a dict where
@@ -30,6 +31,8 @@ def get_dataset(args):
             if args.unequal:
                 # Chose uneuqal splits for every user
                 raise NotImplementedError()
+            elif args.dirichlet:
+                user_groups = get_distribution_index(args.alpha, train_dataset, args.num_users)
             else:
                 # Chose euqal splits for every user
                 user_groups = cifar_noniid(train_dataset, args.num_users)
@@ -68,6 +71,8 @@ def get_dataset(args):
             if args.unequal:
                 # Chose uneuqal splits for every user
                 user_groups = mnist_noniid_unequal(train_dataset, args.num_users)
+            elif args.dirichlet:
+                user_groups = get_distribution_index(args.alpha, train_dataset, args.num_users)
             else:
                 # Chose euqal splits for every user
                 user_groups = mnist_noniid(train_dataset, args.num_users)
@@ -102,9 +107,12 @@ def get_dataset(args):
             if args.unequal:
                 # Chose uneuqal splits for every user
                 raise NotImplementedError()
+            elif args.dirichlet:
+                user_groups = get_distribution_index(args.alpha, train_dataset, args.num_users)
             else:
                 # Chose euqal splits for every user
                 user_groups = cifar_noniid(train_dataset, args.num_users)
+
     return train_dataset, test_dataset, user_groups
 
 
@@ -302,3 +310,63 @@ class DatasetSplit(Dataset):
     def __getitem__(self, item):
         image, label = self.dataset[self.idxs[item]]
         return torch.tensor(image), torch.tensor(label)
+
+
+## data distriution
+
+def normalize(s):
+    for idx, line in enumerate(s):
+        s[idx] = line / sum(line) * 5000
+    return np.cumsum(np.around(s, 0), axis=1)
+
+
+def find_idx(ligne, index):
+    for idx, e in enumerate(ligne):
+        if index <= sum(ligne[0:int(idx) + 1]):
+            break
+    return idx
+
+
+def somme(matrix, idx):
+    tab = 0
+    for i in matrix[0:idx]:
+        tab = tab + i
+    return tab
+
+
+def get_distribution_index(alpha, dataset, nb_user=10):
+    indiv_list = []
+    for goal in range(0, 10):
+        list_1 = [idx for idx, x in enumerate(dataset.targets) if x == goal]
+        indiv_list.append(list_1)
+    nb_class = 10
+    s = normalize(np.random.dirichlet([alpha] * nb_class, nb_user).transpose())
+    data_list_transfer = []
+    for user in range(0, nb_user):
+        if user == 0:
+            bound_1 = 0
+            bound_2 = int(s[0][user])
+            tmp = indiv_list[0][bound_1:bound_2]
+            data_list_transfer.append(tmp)
+        else:
+            bound_1 = int(s[0][user - 1])
+            bound_2 = int(s[0][user])
+            tmp = indiv_list[0][bound_1:bound_2]
+            data_list_transfer.append(tmp)
+
+        for class_ in range(1, 10):
+            if user == 0:
+                bound_1 = 0
+                bound_2 = int(s[class_][user])
+                tmp = indiv_list[class_][bound_1:bound_2]
+                data_list_transfer[user] = data_list_transfer[user] + tmp
+            else:
+                bound_1 = int(s[class_][user - 1])
+                bound_2 = int(s[class_][user])
+                tmp = indiv_list[class_][bound_1:bound_2]
+                data_list_transfer[user] = data_list_transfer[user] + tmp
+
+    dict_users = {}
+    for i in range(nb_user):
+        dict_users[i] = set(data_list_transfer[i])
+    return dict_users
