@@ -101,7 +101,7 @@ to run the code use:
    python3 main.py -detector .. -start_round ..
    ```
    
-   All the arguments are in the file <a href="/src/parser.py">parser</a>
+   All the arguments can be found in the file <a href="/src/parser.py">parser</a>
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
