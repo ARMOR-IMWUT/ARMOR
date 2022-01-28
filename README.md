@@ -51,7 +51,7 @@
 
 This project contains the code for ARMOR, a FL defense mechanism against edge case backdoors attacks, that leverages adversarial learning to uncover edge-case backdoors. More precisely, ARMOR relies on GANs to extract data features from model updates and uses the generated samples to activate potential backdoors in the model.  Our experimental evaluations with various datasets and neural network models show that ARMOR can counter edge-case backdoors with 95% resilience against attacks, and without impacting model quality.
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+<!-- PROJECT LOGO  <p align="right">(<a href="#top">back to top</a>)</p>  -->
 
 
 
@@ -62,8 +62,7 @@ This project contains the code for ARMOR, a FL defense mechanism against edge ca
 * [Python 3.7](https://www.python.org/downloads/release/python-370/)
 * [Pytorch](https://pytorch.org/)
 
-<p align="right">(<a href="#top">back to top</a>)</p>
-
+<!-- PROJECT LOGO  <p align="right">(<a href="#top">back to top</a>)</p>  -->
 
 
 <!-- GETTING STARTED -->
@@ -92,7 +91,7 @@ All the used packages are in requirements.txt file
    pip3 install -r requirements.txt
    ```
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+<!-- PROJECT LOGO  <p align="right">(<a href="#top">back to top</a>)</p>  -->
 
 
 
@@ -113,9 +112,9 @@ to run the code use:
 
 ## Structure
 
-The code for state of the art defense mechanisms can be found on the repository <a href="../src/StateOfTheArt/">State of the art </a>
+The code for state of the art defense mechanisms can be found on the repository <br> src/StateOfTheArtDefenses </br>
 
-The code for armor can be found on the repository <a href="../src/ARMOR/">ARMOR</a>
+The code for armor can be found on the repository <br> src/ARMOR </br>
 
-The code for edge-case backdoor can be found on the repository <a href="../src/train/">train attack</a>
+The code for edge-case backdoor can be found on the repository  <br> src/train </br>
 
