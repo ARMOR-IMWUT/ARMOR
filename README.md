@@ -113,7 +113,7 @@ to run the code use:
 
 ## Structure
 
-The code for state of te art defense mechanisms can be found on the repository <a href="/src/StateOfTheArt/">State of the art </a>
+The code for state of the art defense mechanisms can be found on the repository <a href="/src/StateOfTheArt/">State of the art </a>
 
 The code for armor can be found on the repository <a href="/src/ARMOR/">ARMOR</a>
 
