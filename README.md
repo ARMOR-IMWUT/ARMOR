@@ -14,9 +14,12 @@
     GAN-Based Mitigation of Edge-Case BackdoorAttacks in Federated Learning
 
   </p>
+
+
 </div>
 
 
+ Submitted for [ICDCS 2020](https://icdcs2022.icdcs.org/)
 
 <!-- TABLE OF CONTENTS -->
 <details>
