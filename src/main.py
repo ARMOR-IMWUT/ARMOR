@@ -3,7 +3,7 @@ import copy
 import numpy as np
 import torch
 
-from src.StateOfTheArt.aggregation import FLaggregate, krum, normBound, rfa, trimmed_mean
+from src.StateOfTheArtDefenses.aggregation import FLaggregate, krum, normBound, rfa, trimmed_mean
 from src.datasets.dataset_utils import get_dataset
 from src.models.models import CNNMnist, CNNFashion_Mnist, CNNCifar
 from src.parser import Arguments

@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from src.StateOfTheArt.aggregation import orderdict_tolist, list_todict
+from src.StateOfTheArtDefenses.aggregation import orderdict_tolist, list_todict
 
 
 def test_inference(args, model, test_dataset):

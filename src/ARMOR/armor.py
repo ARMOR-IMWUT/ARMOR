@@ -5,7 +5,7 @@ import torch
 from torch import nn, device, optim
 from torch.autograd import Variable
 
-from src.StateOfTheArt.aggregation import orderdict_tolist, list_todict, orderdict_tolist_adapt
+from src.StateOfTheArtDefenses.aggregation import orderdict_tolist, list_todict, orderdict_tolist_adapt
 from src.models.models import CNNMnist, CNNFashion_Mnist
 
 
