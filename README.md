@@ -46,7 +46,7 @@
 ## About The Project
 
 
-This project contains the code for armor, a FL defense mechanism against edge case backdoors attacks, based on GAN, the software also contains implementations for the state of the art works Multi-Krum, NDC and Trimmed-mean. The software has been implemented in python, using the pytorch package.
+This project contains the code for ARMOR, a FL defense mechanism against edge case backdoors attacks, that leverages adversarial learning to uncover edge-case backdoors. More precisely, ARMOR relies on GANs to extract data features from model updates and uses the generated samples to activate potential backdoors in the model.  Our experimental evaluations with various datasets and neural network models show that ARMOR can counter edge-case backdoors with 95% resilience against attacks, and without impacting model quality.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
