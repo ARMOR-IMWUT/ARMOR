@@ -113,9 +113,9 @@ to run the code use:
 
 ## Structure
 
-The code for state of the art defense mechanisms can be found on the repository <a href="/src/StateOfTheArt/">State of the art </a>
+The code for state of the art defense mechanisms can be found on the repository <a href="../src/StateOfTheArt/">State of the art </a>
 
-The code for armor can be found on the repository <a href="/src/ARMOR/">ARMOR</a>
+The code for armor can be found on the repository <a href="../src/ARMOR/">ARMOR</a>
 
-The code for edge-case backdoor can be found on the repository <a href="/src/train/">train attack</a>
+The code for edge-case backdoor can be found on the repository <a href="../src/train/">train attack</a>
 
