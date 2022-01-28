@@ -110,7 +110,7 @@ to run the code use:
 
 ## Structure
 
-The code for state of the art defense mechanisms can be found on the repository src/StateOfTheArtDefenses
+The code for state-of-the-art defense mechanisms can be found on the repository src/StateOfTheArtDefenses
 
 The code for armor can be found on the repository src/ARMOR 
 
