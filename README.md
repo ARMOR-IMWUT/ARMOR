@@ -103,18 +103,16 @@ to run the code use:
    python3 main.py -detector .. -start_round ..
    ```
    
-   All the arguments can be found in the file <a href="/src/parser.py">parser</a>
+   All the arguments can be found in the file src/parser.py
 
 
-
-<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 ## Structure
 
-The code for state of the art defense mechanisms can be found on the repository <br> src/StateOfTheArtDefenses </br>
+The code for state of the art defense mechanisms can be found on the repository src/StateOfTheArtDefenses
 
-The code for armor can be found on the repository <br> src/ARMOR </br>
+The code for armor can be found on the repository src/ARMOR 
 
-The code for edge-case backdoor can be found on the repository  <br> src/train </br>
+The code for edge-case backdoor can be found on the repository src/train
 
